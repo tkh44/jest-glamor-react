@@ -61,7 +61,7 @@ const colorize = message => {
 }
 
 const matcher = {
-  toMatchSnapshotWithGlamor(...args) {
+  toMatchSnapshotWithEmotion(...args) {
     const result = toMatchSnapshot.apply(this, args)
     let message
 

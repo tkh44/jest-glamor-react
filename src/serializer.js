@@ -1,12 +1,13 @@
 const css = require('css')
-const {styleSheet} = require('glamor')
+const {sheet} = require('emotion/lib/sheet')
 
 const serializer = {test, print}
 
 module.exports = serializer
 
 function test(val) {
-  return val && !val.withStyles &&
+  return val &&
+    !val.withStyles &&
     val.$$typeof === Symbol.for('react.test.json')
 }
 
@@ -59,7 +60,7 @@ function getSelectorsFromProps(selectors, props) {
 }
 
 function getStyles(nodeSelectors) {
-  const styles = styleSheet.tags
+  const styles = sheet.tags
     .map(tag => /* istanbul ignore next */ tag.textContent || '')
     .join('\n')
   const ast = css.parse(styles)

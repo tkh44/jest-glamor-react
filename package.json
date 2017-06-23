@@ -1,6 +1,6 @@
 {
   "name": "jest-emotion-react",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Jest utilities for Glamor and React",
   "main": "dist/index.js",
   "scripts": {

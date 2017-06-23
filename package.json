@@ -6,8 +6,7 @@
   "scripts": {
     "start": "nps",
     "test": "nps test",
-    "commitmsg": "opt --in commit-msg --exec \"validate-commit-msg\"",
-    "precommit": "lint-staged && opt --in pre-commit --exec \"npm start validate\""
+    "commitmsg": "opt --in commit-msg --exec \"validate-commit-msg\""
   },
   "files": [
     "dist"

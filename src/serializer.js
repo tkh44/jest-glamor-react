@@ -1,99 +1,124 @@
 const css = require('css')
-const {sheet} = require('emotion/lib/sheet')
+const {replaceClassNames} = require('./replace-class-names')
 
-const serializer = {test, print}
-
-module.exports = serializer
-
-function test(val) {
-  return val &&
-    !val.withStyles &&
-    val.$$typeof === Symbol.for('react.test.json')
-}
-
-function print(val, printer) {
-  const selectors = getSelectors(val)
-  const styles = getStyles(selectors)
-  val.withStyles = true
-  const printedVal = printer(val)
-  if (styles) {
-    return `${styles}\n\n${printedVal}`
-  } else {
-    return printedVal
+function createSerializer(styleSheet) {
+  function test(val) {
+    return val &&
+      !val.withStyles &&
+      val.$$typeof === Symbol.for('react.test.json')
   }
-}
 
-function getSelectors(node) {
-  let selectors = []
-  if (node.children && node.children.reduce) {
-    selectors = node.children.reduce(
-      (acc, child) => acc.concat(getSelectors(child)),
+  function print(val, printer) {
+    const nodes = getNodes(val)
+    markNodes(nodes)
+    const selectors = getSelectors(nodes)
+    const styles = getStyles(selectors)
+    const printedVal = printer(val)
+    if (styles) {
+      return replaceClassNames(selectors, styles, printedVal)
+    } else {
+      return printedVal
+    }
+  }
+
+  function getNodes(node, nodes = []) {
+    if (node.children) {
+      node.children.forEach(child => getNodes(child, nodes))
+    }
+
+    if (typeof node === 'object') {
+      nodes.push(node)
+    }
+
+    return nodes
+  }
+
+  function markNodes(nodes) {
+    nodes.forEach(node => {
+      node.withStyles = true
+    })
+  }
+
+  function getSelectors(nodes) {
+    return nodes.reduce(
+      (selectors, node) => getSelectorsFromProps(selectors, node.props),
       [],
     )
   }
-  if (node.props) {
-    return getSelectorsFromProps(selectors, node.props)
-  }
-  return selectors
-}
 
-function getSelectorsFromProps(selectors, props) {
-  const className = props.className || props.class
-  if (className) {
-    selectors = selectors.concat(
-      className.toString().split(' ').map(cn => `.${cn}`),
+  function getSelectorsFromProps(selectors, props) {
+    const className = props.className || props.class
+    if (className) {
+      selectors = selectors.concat(
+        className.toString().split(' ').map(cn => `.${cn}`),
+      )
+    }
+    const dataProps = Object.keys(props).reduce(
+      (dProps, key) => {
+        if (key.startsWith('data-')) {
+          dProps.push(`[${key}]`)
+        }
+        return dProps
+      },
+      [],
     )
+    if (dataProps.length) {
+      selectors = selectors.concat(dataProps)
+    }
+    return selectors
   }
-  const dataProps = Object.keys(props).reduce(
-    (dProps, key) => {
-      if (key.startsWith('data-')) {
-        dProps.push(`[${key}]`)
+
+  function getStyles(nodeSelectors) {
+    const tags = typeof styleSheet === 'function' ?
+      styleSheet().tags :
+      styleSheet.tags
+    const styles = tags
+      .map(tag => /* istanbul ignore next */ tag.textContent || '')
+      .join('\n')
+    const ast = css.parse(styles)
+    const rules = ast.stylesheet.rules.filter(filter)
+    const mediaQueries = getMediaQueries(ast, filter)
+
+    ast.stylesheet.rules = [...rules, ...mediaQueries]
+
+    const ret = css.stringify(ast)
+    return ret
+
+    function filter(rule) {
+      if (rule.type === 'rule') {
+        return rule.selectors.some(selector => {
+          const baseSelector = selector.split(/:| /)[0]
+          return nodeSelectors.includes(baseSelector)
+        })
       }
-      return dProps
-    },
-    [],
-  )
-  if (dataProps.length) {
-    selectors = selectors.concat(dataProps)
-  }
-  return selectors
-}
-
-function getStyles(nodeSelectors) {
-  const styles = sheet.tags
-    .map(tag => /* istanbul ignore next */ tag.textContent || '')
-    .join('\n')
-  const ast = css.parse(styles)
-  const rules = ast.stylesheet.rules.filter(filter)
-  const mediaQueries = getMediaQueries(ast, filter)
-
-  ast.stylesheet.rules = [...rules, ...mediaQueries]
-
-  const ret = css.stringify(ast)
-  return ret
-
-  function filter(rule) {
-    if (rule.type === 'rule') {
-      return rule.selectors.some(selector => {
-        const baseSelector = selector.split(/:| /)[0]
-        return nodeSelectors.includes(baseSelector)
-      })
+      return false
     }
-    return false
   }
+
+  function getMediaQueries(ast, filter) {
+    return ast.stylesheet.rules
+      .filter(rule => rule.type === 'media' || rule.type === 'supports')
+      .reduce(
+        (acc, mediaQuery) => {
+          mediaQuery.rules = mediaQuery.rules.filter(filter)
+
+          if (mediaQuery.rules.length) {
+            return acc.concat(mediaQuery)
+          }
+
+          return acc
+        },
+        [],
+      )
+  }
+  return {test, print}
 }
 
-function getMediaQueries(ast, filter) {
-  return ast.stylesheet.rules.filter(rule => rule.type === 'media').reduce((
-    acc,
-    mediaQuery,
-  ) => {
-    mediaQuery.rules = mediaQuery.rules.filter(filter)
+// doing this to make it easier for users to mock things
+// like switching between development mode and whatnot.
+const getGlamorStyleSheet = () => require('glamor').styleSheet
+const glamorSerializer = createSerializer(getGlamorStyleSheet)
+createSerializer.test = glamorSerializer.test
+createSerializer.print = glamorSerializer.print
 
-    if (mediaQuery.rules.length) {
-      return acc.concat(mediaQuery)
-    }
-
-    return acc
-  }, [])
-}
+module.exports = createSerializer

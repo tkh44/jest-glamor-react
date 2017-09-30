@@ -29,6 +29,35 @@
         "infra",
         "test"
       ]
+    },
+    {
+      "login": "mitchellhamilton",
+      "name": "Mitchell Hamilton",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/11481355?v=3",
+      "profile": "https://hamil.town",
+      "contributions": [
+        "code",
+        "doc",
+        "test"
+      ]
+    },
+    {
+      "login": "jhurley23",
+      "name": "jhurley23",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/11878516?v=3",
+      "profile": "https://github.com/jhurley23",
+      "contributions": [
+        "code",
+        "test",
+        "doc"
+      ]
+    },
+    {
+      "login": "megaurav2002",
+      "name": "Gaurav Talwar",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/27758243?v=4",
+      "profile": "https://github.com/megaurav2002",
+      "contributions": []
     }
   ]
 }

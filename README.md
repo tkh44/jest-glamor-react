@@ -9,7 +9,7 @@ Jest utilities for Glamor and React
 [![downloads][downloads-badge]][npm-stat]
 [![MIT License][license-badge]][LICENSE]
 
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors)
 [![PRs Welcome][prs-badge]][prs]
 [![Donate][donate-badge]][donate]
 [![Code of Conduct][coc-badge]][coc]
@@ -19,6 +19,8 @@ Jest utilities for Glamor and React
 [![Watch on GitHub][github-watch-badge]][github-watch]
 [![Star on GitHub][github-star-badge]][github-star]
 [![Tweet][twitter-badge]][twitter]
+
+<a href="https://app.codesponsor.io/link/PKGFLnhDiFvsUA5P4kAXfiPs/kentcdodds/jest-glamor-react" rel="nofollow"><img src="https://app.codesponsor.io/embed/PKGFLnhDiFvsUA5P4kAXfiPs/kentcdodds/jest-glamor-react.svg" style="width: 888px; height: 68px;" alt="Sponsor" /></a>
 
 ## The problem
 
@@ -87,11 +89,22 @@ npm install --save-dev jest-glamor-react
 At the top of your test file:
 
 ```javascript
-import {matcher, serializer} from 'jest-glamor-react'
+import serializer from 'jest-glamor-react'
 
 expect.addSnapshotSerializer(serializer)
-expect.extend(matcher)
 ```
+
+Or in your Jest serializer config:
+
+```javascript
+{
+  "snapshotSerializers": [
+    "jest-glamor-react"
+  ]
+}
+```
+
+If you have set jest.config variable `"testEnvironment": "node"`, you will need to manually mock up browser gloabl objects so it is recommended to use `"testEnvironment": "jsdom"` instead.
 
 Here are some components:
 
@@ -132,7 +145,7 @@ test('react-test-renderer', () => {
     )
     .toJSON()
 
-  expect(tree).toMatchSnapshotWithGlamor()
+  expect(tree).toMatchSnapshot()
 })
 ```
 
@@ -149,11 +162,47 @@ test('enzyme', () => {
     </Wrapper>
   )
 
-  expect(toJson(enzyme.shallow(ui))).toMatchSnapshotWithGlamor(`enzyme.shallow`)
-  expect(toJson(enzyme.mount(ui))).toMatchSnapshotWithGlamor(`enzyme.mount`)
-  expect(toJson(enzyme.render(ui))).toMatchSnapshotWithGlamor(`enzyme.render`)
+  expect(toJson(enzyme.shallow(ui))).toMatchSnapshot(`enzyme.shallow`)
+  expect(toJson(enzyme.mount(ui))).toMatchSnapshot(`enzyme.mount`)
+  expect(toJson(enzyme.render(ui))).toMatchSnapshot(`enzyme.render`)
 })
 ```
+
+If you use a library with a similar stylesheet solution to [`glamor`][glamor] like [`cxs`][cxs] you can do this instead:
+
+```javascript
+import {sheet} from 'cxs'
+import serializer from 'jest-glamor-react'
+
+expect.addSnapshotSerializer(serializer(sheet))
+```
+
+Then you can create components like this:
+
+```javascript
+import React from 'react'
+import cxs from 'cxs'
+
+function Wrapper(props) {
+  const className = cxs({
+    padding: '4em',
+    background: 'papayawhip',
+  })
+  return <section className={`${className}`} {...props} />
+}
+
+function Title(props) {
+  const className = cxs({
+    fontSize: '1.5em',
+    textAlign: 'center',
+    color: 'palevioletred',
+  })
+  return <h1 className={`${className}`} {...props} />
+}
+```
+
+And test them the same way as before.
+
 
 ## Inspiration
 
@@ -171,8 +220,8 @@ I'm unaware of other solutions. Please file a PR if you know of any!
 Thanks goes to these people ([emoji key][emojis]):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-| [<img src="https://avatars1.githubusercontent.com/u/1308971?v=3" width="100px;"/><br /><sub>Michele Bertoli</sub>](http://michele.berto.li)<br />[💻](https://github.com/kentcdodds/jest-glamor-react/commits?author=MicheleBertoli) [📖](https://github.com/kentcdodds/jest-glamor-react/commits?author=MicheleBertoli) [⚠️](https://github.com/kentcdodds/jest-glamor-react/commits?author=MicheleBertoli) | [<img src="https://avatars.githubusercontent.com/u/1500684?v=3" width="100px;"/><br /><sub>Kent C. Dodds</sub>](https://kentcdodds.com)<br />[💻](https://github.com/kentcdodds/jest-glamor-react/commits?author=kentcdodds) [📖](https://github.com/kentcdodds/jest-glamor-react/commits?author=kentcdodds) 🚇 [⚠️](https://github.com/kentcdodds/jest-glamor-react/commits?author=kentcdodds) |
-| :---: | :---: |
+| [<img src="https://avatars1.githubusercontent.com/u/1308971?v=3" width="100px;"/><br /><sub>Michele Bertoli</sub>](http://michele.berto.li)<br />[💻](https://github.com/kentcdodds/jest-glamor-react/commits?author=MicheleBertoli "Code") [📖](https://github.com/kentcdodds/jest-glamor-react/commits?author=MicheleBertoli "Documentation") [⚠️](https://github.com/kentcdodds/jest-glamor-react/commits?author=MicheleBertoli "Tests") | [<img src="https://avatars.githubusercontent.com/u/1500684?v=3" width="100px;"/><br /><sub>Kent C. Dodds</sub>](https://kentcdodds.com)<br />[💻](https://github.com/kentcdodds/jest-glamor-react/commits?author=kentcdodds "Code") [📖](https://github.com/kentcdodds/jest-glamor-react/commits?author=kentcdodds "Documentation") [🚇](#infra-kentcdodds "Infrastructure (Hosting, Build-Tools, etc)") [⚠️](https://github.com/kentcdodds/jest-glamor-react/commits?author=kentcdodds "Tests") | [<img src="https://avatars2.githubusercontent.com/u/11481355?v=3" width="100px;"/><br /><sub>Mitchell Hamilton</sub>](https://hamil.town)<br />[💻](https://github.com/kentcdodds/jest-glamor-react/commits?author=mitchellhamilton "Code") [📖](https://github.com/kentcdodds/jest-glamor-react/commits?author=mitchellhamilton "Documentation") [⚠️](https://github.com/kentcdodds/jest-glamor-react/commits?author=mitchellhamilton "Tests") | [<img src="https://avatars2.githubusercontent.com/u/11878516?v=3" width="100px;"/><br /><sub>jhurley23</sub>](https://github.com/jhurley23)<br />[💻](https://github.com/kentcdodds/jest-glamor-react/commits?author=jhurley23 "Code") [⚠️](https://github.com/kentcdodds/jest-glamor-react/commits?author=jhurley23 "Tests") [📖](https://github.com/kentcdodds/jest-glamor-react/commits?author=jhurley23 "Documentation") | [<img src="https://avatars0.githubusercontent.com/u/27758243?v=4" width="100px;"/><br /><sub>Gaurav Talwar</sub>](https://github.com/megaurav2002)<br /> |
+| :---: | :---: | :---: | :---: | :---: |
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors][all-contributors] specification. Contributions of any kind welcome!
@@ -218,3 +267,4 @@ MIT
 [jest]: http://facebook.github.io/jest/
 [MicheleBertoli]: https://github.com/MicheleBertoli
 [jest-styled-components]: https://github.com/styled-components/jest-styled-components
+[cxs]: https://www.npmjs.com/package/cxs
